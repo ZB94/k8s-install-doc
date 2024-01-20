@@ -11,7 +11,7 @@
     overlay
     br_netfilter
     EOF
-    
+
     modprobe overlay
     modprobe br_netfilter
     ```
@@ -92,21 +92,20 @@
     4. 安装`cri-dockerd`
 
         在[cri-dockerd release](https://github.com/Mirantis/cri-dockerd/releases)页面下载对应的安装包或程序
-    
+
         - 对于使用安装包安装的，可跳过第五步
         - 对于直接下载程序的，还需要将程序复制到指定路径，并添加对应服务文件
-
 
         ```bash
         wget https://github.com/Mirantis/cri-dockerd/releases/download/v0.3.9/cri-dockerd-0.3.9.arm64.tgz
         tar -xf cri-dockerd-0.3.9.arm64.tgz
         cp cri-dockerd/cri-dockerd /usr/bin
         ```
-    
+
     5. 配置`cri-dockerd`服务
-    
+
         1. 创建文件`/etc/systemd/system/cri-docker.service`，内容为
-    
+
             ```ini
             [Unit]
             Description=CRI Interface for Docker Application Container Engine
@@ -132,16 +131,16 @@
             # Both the old, and new name are accepted by systemd 230 and up, so using the old name to make
             # this option work for either version of systemd.
             StartLimitInterval=60s
-            
+
             # Having non-zero Limit*s causes performance problems due to accounting overhead
-    
+
             # in the kernel. We recommend using cgroups to do container-local accounting.
             LimitNOFILE=infinity
             LimitNPROC=infinity
             LimitCORE=infinity
-    
+
             # Comment TasksMax if your systemd version does not support it.
-    
+
             # Only systemd 226 and above support this option.
             TasksMax=infinity
             Delegate=yes
@@ -150,9 +149,9 @@
             [Install]
             WantedBy=multi-user.target
             ```
-    
+
         2. 创建文件`/etc/systemd/system/cri-docker.socket`，内容为
-    
+
             ```ini
             [Unit]
             Description=CRI Docker Socket for the API
@@ -167,39 +166,39 @@
             [Install]
             WantedBy=sockets.target
             ```
-    
+
     6. 启动`cri-dockerd`服务
-    
+
         ```bash
         systemctl enable --now cri-docker.socket cri-docker.service
         ```
 
 - **Containerd**
-  
+
     1. 安装
-    
+
         ```bash
         yum install containerd.io
         ```
-    
-        2. 修改配置文件`/etc/containerd/config.toml`: 
+
+        2. 修改配置文件`/etc/containerd/config.toml`:
         - 将`disabled_plugins`的配置注释或删除其中`cri`
-    
+
             ```bash
             sed -r -i 's/^disabled_plugins.+/# $0/' /etc/containerd/config.toml
             ```
-    
-    	- 添加以下配置
-    	
+
+        - 添加以下配置
+
             ```toml
             [plugins."io.containerd.grpc.v1.cri"]
             sandbox_image = "registry.k8s.io/pause:3.9"
             [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
             SystemdCgroup = true
             ```
-    
+
     3. 重启`containerd`服务
-    
+
         ```bash
         systemctl enable containerd
         systemctl restart containerd
@@ -209,18 +208,18 @@
 ## 安装`kubeadm`
 
 1. 关闭**SELinux**
-    - 临时关闭: 
+    - 临时关闭:
 
         ```bash
         setenforce 0
         ```
-    
+
     - 永久关闭: 编辑`/etc/selinux/config`文件，将`SELINUX`的值修改为`disabled`
 
         ```bash
         sed -r -i 's/SELINUX=.*/\SELINUX=disable/' /etc/selinux/config
         ```
-    
+
 2. 关闭交换区
 
     - 临时关闭
@@ -262,11 +261,11 @@
     # docker
     runtime-endpoint: unix:///var/run/cri-dockerd.sock
     image-endpoint: unix:///var/run/cri-dockerd.sock
-    
+
     # containerd
     #runtime-endpoint: unix:///var/run/containerd/containerd.sock
     #image-endpoint: unix:///var/run/containerd/containerd.sock
-    
+
     timeout: 10
     debug: false
     ```
@@ -285,14 +284,14 @@
 
 #### 主节点
 
-| 端口范围    | 用途                                                         |
-| ----------- | ------------------------------------------------------------ |
-| 6443        | Kubernetes API server                                        |
-| 2379-2380   | etcd server client API                                       |
-| 10250       | Kubelet API                                                  |
-| 10251       | kube-scheduler                                               |
-| 10252       | kube-controller-manager                                      |
-| 10255       | Read-only Kubelet API (Heapster)                             |
+| 端口范围    | 用途                                                                                                                   |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------- |
+| 6443        | Kubernetes API server                                                                                                  |
+| 2379-2380   | etcd server client API                                                                                                 |
+| 10250       | Kubelet API                                                                                                            |
+| 10251       | kube-scheduler                                                                                                         |
+| 10252       | kube-controller-manager                                                                                                |
+| 10255       | Read-only Kubelet API (Heapster)                                                                                       |
 | 30000-32767 | [NodePort Services](https://kubernetes.io/docs/concepts/services-networking/service)默认端口范围。可等后续根据需要开放 |
 
 ```bash
@@ -301,10 +300,10 @@ firewall-cmd --permanent --zone=public --add-port=6443/tcp --add-port=2379-2380/
 
 #### 工作节点
 
-| 端口范围    | 用途                                                         |
-| ----------- | ------------------------------------------------------------ |
-| 10250       | Kubelet API                                                  |
-| 10255       | Read-only Kubelet API (Heapster)                             |
+| 端口范围    | 用途                                                                                                                   |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------- |
+| 10250       | Kubelet API                                                                                                            |
+| 10255       | Read-only Kubelet API (Heapster)                                                                                       |
 | 30000-32767 | [NodePort Services](https://kubernetes.io/docs/concepts/services-networking/service)默认端口范围。可等后续根据需要开放 |
 
 ```bash
@@ -331,7 +330,7 @@ firewall-cmd --permanent --zone=public --add-port=10250/tcp --add-port=10255/tcp
     ```bash
     # docker
     docker load -i <导出镜像文件>
-    
+
     # conainterd
     ctr -n k8s.io image import <导出镜像文件>
     ```
@@ -459,7 +458,7 @@ firewall-cmd --reload
     ```yaml
     version: "3"
     name: kuboard
-    
+
     services:
       kuboard:
         image: eipwork/kuboard:v3
@@ -472,7 +471,7 @@ firewall-cmd --reload
         environment:
           KUBOARD_ENDPOINT: http://10.21.130.128:10080
           KUBOARD_AGENT_SERVER_TCP_PORT: "10081"
-    
+
     volumes:
         kuboard-data: {}
     ```
@@ -486,5 +485,3 @@ firewall-cmd --reload
     ```bash
     docker compose up -d
     ```
-
-    

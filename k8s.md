@@ -49,16 +49,16 @@
 
 1. 添加镜像源
 
-```bash
-# 选择其中一个
-# 官方镜像
-yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-sed -i -e 's/$releasever/8/g' /etc/yum.repos.d/docker-ce.repo
+    ```bash
+    # 选择其中一个
+    # 官方镜像
+    yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+    sed -i -e 's/$releasever/8/g' /etc/yum.repos.d/docker-ce.repo
 
-# 阿里镜像
-yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
-sed -i -e 's/$releasever/8/g' -e 's+download.docker.com+mirrors.aliyun.com/docker-ce+' /etc/yum.repos.d/docker-ce.repo
-```
+    # 阿里镜像
+    yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+    sed -i -e 's/$releasever/8/g' -e 's+download.docker.com+mirrors.aliyun.com/docker-ce+' /etc/yum.repos.d/docker-ce.repo
+   ```
 
 2. 安装和配置
 
@@ -95,12 +95,13 @@ sed -i -e 's/$releasever/8/g' -e 's+download.docker.com+mirrors.aliyun.com/docke
     
         - 对于使用安装包安装的，可跳过第五步
         - 对于直接下载程序的，还需要将程序复制到指定路径，并添加对应服务文件
-    
-    ```bash
+
+
+        ```bash
         wget https://github.com/Mirantis/cri-dockerd/releases/download/v0.3.9/cri-dockerd-0.3.9.arm64.tgz
-    tar -xf cri-dockerd-0.3.9.arm64.tgz
+        tar -xf cri-dockerd-0.3.9.arm64.tgz
         cp cri-dockerd/cri-dockerd /usr/bin
-    ```
+        ```
     
     5. 配置`cri-dockerd`服务
     
@@ -108,15 +109,15 @@ sed -i -e 's/$releasever/8/g' -e 's+download.docker.com+mirrors.aliyun.com/docke
     
             ```ini
             [Unit]
-        Description=CRI Interface for Docker Application Container Engine
+            Description=CRI Interface for Docker Application Container Engine
             Documentation=https://docs.mirantis.com
             After=network-online.target firewalld.service docker.service
             Wants=network-online.target
             Requires=cri-docker.socket
-    
+
             [Service]
             Type=notify
-        ExecStart=/usr/bin/cri-dockerd --container-runtime-endpoint fd://
+            ExecStart=/usr/bin/cri-dockerd --container-runtime-endpoint fd://
             ExecReload=/bin/kill -s HUP $MAINPID
             TimeoutSec=0
             RestartSec=2
@@ -132,14 +133,14 @@ sed -i -e 's/$releasever/8/g' -e 's+download.docker.com+mirrors.aliyun.com/docke
             # this option work for either version of systemd.
             StartLimitInterval=60s
             
-        	# Having non-zero Limit*s causes performance problems due to accounting overhead
+            # Having non-zero Limit*s causes performance problems due to accounting overhead
     
             # in the kernel. We recommend using cgroups to do container-local accounting.
             LimitNOFILE=infinity
             LimitNPROC=infinity
             LimitCORE=infinity
     
-        	# Comment TasksMax if your systemd version does not support it.
+            # Comment TasksMax if your systemd version does not support it.
     
             # Only systemd 226 and above support this option.
             TasksMax=infinity
@@ -156,8 +157,8 @@ sed -i -e 's/$releasever/8/g' -e 's+download.docker.com+mirrors.aliyun.com/docke
             [Unit]
             Description=CRI Docker Socket for the API
             PartOf=cri-docker.service
-    
-	        [Socket]
+
+            [Socket]
             ListenStream=%t/cri-dockerd.sock
             SocketMode=0660
             SocketUser=root
@@ -369,9 +370,9 @@ firewall-cmd --permanent --zone=public --add-port=10250/tcp --add-port=10255/tcp
 
     1. 创建文件`/etc/NetworkManager/conf.d/calico.conf`，内容为：
 
-        ```int
+        ```ini
         [keyfile]
-    unmanaged-devices=interface-name:cali*;interface-name:tunl*;interface-name:vxlan.calico;interface-name:vxlan-v6.calico;interface-name:wireguard.cali;interface-name:wg-v6.cali
+        unmanaged-devices=interface-name:cali*;interface-name:tunl*;interface-name:vxlan.calico;interface-name:vxlan-v6.calico;interface-name:wireguard.cali;interface-name:wg-v6.cali
         ```
 
     2. 开放以下端口

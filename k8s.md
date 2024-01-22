@@ -60,7 +60,20 @@
     sed -i -e 's/$releasever/8/g' -e 's+download.docker.com+mirrors.aliyun.com/docker-ce+' /etc/yum.repos.d/docker-ce.repo
    ```
 
-2. 安装和配置
+2. 卸载已有的docker
+
+    ```bash
+    yum remove docker \
+                docker-client \
+                docker-client-latest \
+                docker-common \
+                docker-latest \
+                docker-latest-logrotate \
+                docker-logrotate \
+                docker-engine
+    ```
+
+3. 安装和配置
 
     以下两种选择一种：
 
@@ -77,7 +90,11 @@
             ```json
             {
                 "insecure-registries":[],
-                "registry-mirrors": [],
+                "registry-mirrors": [
+                    "https://reg-mirror.qiniu.com/",
+                    "https://hub-mirror.c.163.com/",
+                    "https://docker.mirrors.ustc.edu.cn/"
+                ],
                 "data-root": "/data/docker-data",
                 "exec-opts": ["native.cgroupdriver=systemd"]
             }
@@ -133,14 +150,12 @@
             StartLimitInterval=60s
 
             # Having non-zero Limit*s causes performance problems due to accounting overhead
-
             # in the kernel. We recommend using cgroups to do container-local accounting.
             LimitNOFILE=infinity
             LimitNPROC=infinity
             LimitCORE=infinity
 
             # Comment TasksMax if your systemd version does not support it.
-
             # Only systemd 226 and above support this option.
             TasksMax=infinity
             Delegate=yes
@@ -252,7 +267,7 @@
 5. 启动服务
 
     ```bash
-    systemctl enable kubelet && systemctl start kubelet
+    systemctl enable --now kubelet
     ```
 
 6. 创建文件`/etc/crictl.yaml`, 内容为:
@@ -295,7 +310,9 @@
 | 30000-32767 | [NodePort Services](https://kubernetes.io/docs/concepts/services-networking/service)默认端口范围。可等后续根据需要开放 |
 
 ```bash
-firewall-cmd --permanent --zone=public --add-port=6443/tcp --add-port=2379-2380/tcp --add-port=10250/tcp --add-port=10251/tcp --add-port=10252/tcp --add-port=10255/tcp --add-masquerade
+firewall-cmd --permanent --zone=public --add-port=6443/tcp --add-port=2379-2380/tcp --add-port=10250/tcp --add-port=10251/tcp --add-port=10252/tcp --add-port=10255/tcp --add-port=179/tcp --add-port=4789/udp
+firewall-cmd --permanent --zone=public --add-masquerade
+firewall-cmd --reload
 ```
 
 #### 工作节点
@@ -307,7 +324,9 @@ firewall-cmd --permanent --zone=public --add-port=6443/tcp --add-port=2379-2380/
 | 30000-32767 | [NodePort Services](https://kubernetes.io/docs/concepts/services-networking/service)默认端口范围。可等后续根据需要开放 |
 
 ```bash
-firewall-cmd --permanent --zone=public --add-port=10250/tcp --add-port=10255/tcp --add-masquerade
+firewall-cmd --permanent --zone=public --add-port=10250/tcp --add-port=10255/tcp --add-port=179/tcp --add-port=4789/udp
+firewall-cmd --permanent --zone=public --add-masquerade
+firewall-cmd --reload
 ```
 
 ### 加载k8s镜像（如果服务器能正常拉取镜像可忽略）

@@ -310,7 +310,7 @@
 | 30000-32767 | [NodePort Services](https://kubernetes.io/docs/concepts/services-networking/service)默认端口范围。可等后续根据需要开放 |
 
 ```bash
-firewall-cmd --permanent --zone=public --add-port=6443/tcp --add-port=2379-2380/tcp --add-port=10250/tcp --add-port=10251/tcp --add-port=10252/tcp --add-port=10255/tcp --add-port=179/tcp --add-port=4789/udp
+firewall-cmd --permanent --zone=public --add-port=6443/tcp --add-port=2379-2380/tcp --add-port=10250/tcp --add-port=10251/tcp --add-port=10252/tcp --add-port=10255/tcp --add-port=179/tcp --add-port=4789/udp --add-port=5473/tcp
 firewall-cmd --permanent --zone=public --add-masquerade
 firewall-cmd --reload
 ```
@@ -444,18 +444,28 @@ kubeadm join <control-plane-host>:<control-plane-port> --token <token> --discove
     kubeadm token list
     ```
 
-- `token`有效期默认为24小时，如果超过该时间，可以通过以下指令创建
+- `token`有效期默认为24小时，如果超过该时间，可以通过在直接点执行以下指令创建
 
     ```bash
     kubeadm token create
     ```
 
-- `hash`值可在主节点通过以下指令获取
+- `hash`值可在主节点通过执行以下指令获取
 
     ```bash
     openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | \
        openssl dgst -sha256 -hex | sed 's/^.* //'
     ```
+
+- 如果要将节点作为`control-plane`加入，则需要添加以下参数
+
+    - `--control-plane`
+
+    - `--certificate-key <KEY>`，`KEY`的值在主节点初始化成功后会输出，如果没有保存，可以通过在主节点执行以下指令重新获取
+
+        ```bash
+        kubeadm init phase upload-certs --upload-certs
+        ```
 
 ### 如果不同节点之间的容器无法互通，可尝试在所有节点执行以下指令
 

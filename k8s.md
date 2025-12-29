@@ -386,7 +386,7 @@ firewall-cmd --reload
 
     参考: [https://docs.tigera.io/calico/latest/getting-started/kubernetes/quickstart](https://docs.tigera.io/calico/latest/getting-started/kubernetes/quickstart)
 
-    1. 创建文件`/etc/NetworkManager/conf.d/calico.conf`，内容为：
+    1. ~~创建文件`/etc/NetworkManager/conf.d/calico.conf`，内容为：~~ 新版本可忽略该步骤
 
         ```ini
         [keyfile]
